@@ -61,7 +61,8 @@ void fakeswitch_init(struct fakeswitch *fs, int dpid, int sock, int bufsize, int
     fs->probe_state = 0;
     fs->mode = mode;
     fs->probe_size = make_packet_in(fs->id, 0, 0, buf, BUFLEN, fs->current_mac_address++);
-    fs->count = 0;
+    fs->send_count = 0;
+    fs->recv_count = 0;
     fs->switch_status = START;
     fs->delay = delay;
     fs->total_mac_addresses = total_mac_addresses;
@@ -149,13 +150,13 @@ void fakeswitch_set_pollfd(struct fakeswitch *fs, struct pollfd *pfd)
 
 /***********************************************************************/
 
-int fakeswitch_get_count(struct fakeswitch *fs)
+int fakeswitch_get_recv_count(struct fakeswitch *fs)
 {
-    int ret = fs->count;
+    int ret = fs->recv_count;
     int count;
     int msglen;
     struct pof_header * pofph;
-    fs->count = 0;
+    fs->recv_count = 0;
     fs->probe_state = 0;        // reset packet state
     // keep reading until there is nothing to clear out the queue
     while( (count = msgbuf_read(fs->inbuf,fs->sock)) > 0) {
@@ -163,12 +164,19 @@ int fakeswitch_get_count(struct fakeswitch *fs)
             // need to read msg by msg to ensure framing isn't broken
             pofph = msgbuf_peek(fs->inbuf);
             msglen = ntohs(pofph->length);
+            //printf("count of msgbuf: %d and msglen: %d\n", count, msglen);
             if(count < msglen)
                 break;     // msg not all there yet; 
             msgbuf_pull(fs->inbuf, NULL, ntohs(pofph->length));
             count -= msglen;
         }
     }
+    return ret;
+}
+
+int fakeswitch_get_send_count(struct fakeswitch *fs) {
+    int ret = fs->send_count;
+    fs->send_count = 0;
     return ret;
 }
 
@@ -338,7 +346,7 @@ static int make_packet_in(int switch_id, int xid, int buffer_id, char * buf, int
 void fakeswitch_change_status_now (struct fakeswitch *fs, int new_status) {
     fs->switch_status = new_status;
     if(new_status == READY_TO_SEND) {
-        fs->count = 0;
+        fs->recv_count = 0;
         fs->probe_state = 0;
     }
         
@@ -393,7 +401,7 @@ void fakeswitch_handle_read(struct fakeswitch *fs)
                 po = (pof_packet_out *) pofh;
                 if ( fs->switch_status == READY_TO_SEND && ! packet_out_is_lldp(po)) { 
                     // assume this is in response to what we sent
-                    fs->count++;        // got response to what we went
+                    fs->recv_count++;        // got response to what we went
                     fs->probe_state--;
                 }
                 break;
@@ -402,7 +410,7 @@ void fakeswitch_handle_read(struct fakeswitch *fs)
                 if(fs->switch_status == READY_TO_SEND && (fm->command == htons(POFFC_ADD) ||
                         fm->command == htons(POFFC_MODIFY_STRICT)))
                 {
-                    fs->count++;        // got response to what we went
+                    fs->recv_count++;        // got response to what we went
                     fs->probe_state--;
                 }
                 break;
@@ -499,6 +507,7 @@ static void fakeswitch_handle_write(struct fakeswitch *fs)
             msgbuf_push(fs->outbuf, buf, count);
             debug_msg(fs, "send message %d", i);
         }
+        fs->send_count = fs->send_count + send_count;
     } else if( fs->switch_status == WAITING) 
     {
         struct timeval now;
