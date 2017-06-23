@@ -86,7 +86,7 @@ void fakeswitch_init(struct fakeswitch *fs, int dpid, int sock, int bufsize, int
 void fakeswitch_learn_dstmac(struct fakeswitch *fs)
 {
     // thanks wireshark
-/*    char gratuitous_arp_reply [] = {
+    char gratuitous_arp_reply [] = {
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x0c, 
         0x29, 0x1a, 0x29, 0x1a, 0x08, 0x06, 0x00, 0x01, 
         0x08, 0x00, 0x06, 0x04, 0x00, 0x02, 0x00, 0x0c, 
@@ -101,13 +101,13 @@ void fakeswitch_learn_dstmac(struct fakeswitch *fs)
     char ip_address_to_learn[] = { 192, 168 , 1, 40 };
 
     char buf [512];
-    int len = sizeof( struct ofp_packet_in ) + sizeof(gratuitous_arp_reply);
-    struct ofp_packet_in *pkt_in;
+    int len = 32 + sizeof(gratuitous_arp_reply);
+    struct pof_packet_in *pkt_in;
     struct ether_header * eth;
     void * arp_reply;
 
     memset(buf, 0, sizeof(buf));
-    pkt_in = ( struct ofp_packet_in *) buf;
+    pkt_in = ( struct pof_packet_in *) buf;
 
     pkt_in->header.version = POF_VERSION;
     pkt_in->header.type = POFT_PACKET_IN;
@@ -116,7 +116,7 @@ void fakeswitch_learn_dstmac(struct fakeswitch *fs)
 
     pkt_in->buffer_id = -1;
     pkt_in->total_len = htons(sizeof(gratuitous_arp_reply));
-    pkt_in->in_port = htons(2);
+    pkt_in->port_id = htons(2);
     pkt_in->reason = POFR_NO_MATCH;
 
     memcpy(pkt_in->data, gratuitous_arp_reply, sizeof(gratuitous_arp_reply));
@@ -134,7 +134,7 @@ void fakeswitch_learn_dstmac(struct fakeswitch *fs)
     memcpy ( arp_reply + 24, ip_address_to_learn, 4);
 
     msgbuf_push(fs->outbuf,(char * ) pkt_in, len);
-    debug_msg(fs, " sent gratuitous ARP reply to learn about mac address: version %d length %d type %d eth: %x arp: %x ", pkt_in->header.version, len, buf[1], eth, arp_reply);*/
+    debug_msg(fs, " sent gratuitous ARP reply to learn about mac address: version %d length %d type %d eth: %x arp: %x ", pkt_in->header.version, len, buf[1], eth, arp_reply);
 }
 
 

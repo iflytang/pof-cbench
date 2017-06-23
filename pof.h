@@ -533,7 +533,7 @@ typedef struct pof_packet_in {
     uint16_t port_id;
 
     char    data[POF_PACKET_IN_MAX_LENGTH];
-} pof_packet_in;    //sizeof=24 + 2048 = 2072
+} pof_packet_in;    //sizeof=32 + 2048 = 2072
 
 /* Why is this packet being sent to the controller? */
 enum pof_packet_in_reason {
@@ -566,4 +566,4 @@ typedef struct pof_packet_out{
     uint32_t packetLen;
     pof_action actionList[POF_MAX_ACTION_NUMBER_PER_INSTRUCTION];
     char data[POF_PACKET_IN_MAX_LENGTH];
-}pof_packet_out; //sizeof = 2352 + 8 = 2360
+}pof_packet_out; //sizeof = 8 + 16 + 48*6 + 2048 = 2360
