@@ -556,7 +556,6 @@ typedef struct pof_action{
 
 
 /*Describe the packet out struct comes from controller*/
-/* add by wenjian 2015/12/01*/
 typedef struct pof_packet_out{
     pof_header header;
     uint32_t bufferId;
@@ -567,3 +566,20 @@ typedef struct pof_packet_out{
     pof_action actionList[POF_MAX_ACTION_NUMBER_PER_INSTRUCTION];
     char data[POF_PACKET_IN_MAX_LENGTH];
 }pof_packet_out; //sizeof = 8 + 16 + 48*6 + 2048 = 2360
+
+typedef struct pof_role_request{
+    pof_header header;
+    uint8_t role; /*TODO: add padding bytes to the message*/
+}pof_role_request;
+
+typedef struct pof_role_reply{
+    pof_header header;
+    uint8_t role; /*TODO: add padding bytes to the message*/
+}pof_role_reply;
+
+typedef enum pof_role_type{
+    ROLE_NOCHANGE,
+    ROLE_EQUAL,
+    ROLE_MASTER,
+    ROLE_SLAVE
+}pof_role_type;

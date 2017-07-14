@@ -377,6 +377,7 @@ void fakeswitch_handle_read(struct fakeswitch *fs)
     int count;
     struct pof_header * pofh;
     struct pof_header echo;
+    struct pof_role_reply role_reply;
     //struct ofp_header barrier;
     char buf[BUFLEN];
     count = msgbuf_read(fs->inbuf, fs->sock);   // read any queued data
@@ -397,7 +398,8 @@ void fakeswitch_handle_read(struct fakeswitch *fs)
             return;     // msg not all there yet
         msgbuf_pull(fs->inbuf, NULL, ntohs(pofh->length));
         pof_flow_entry * fm;
-        struct pof_packet_out *po;
+        pof_packet_out * po;
+        pof_role_request * rr;
         switch(pofh->type)
         {
             case POFT_PACKET_OUT:
@@ -470,6 +472,17 @@ void fakeswitch_handle_read(struct fakeswitch *fs)
                 echo.type   = POFT_ECHO_REPLY;
                 echo.xid = pofh->xid;
                 msgbuf_push(fs->outbuf,(char *) &echo, sizeof(echo));
+                break;
+            case POFT_ROLE_REQUEST:
+                debug_msg(fs, "got role_request, sent role_reply");
+                rr = (pof_role_request *) pofh;
+                role_reply.header.version = POF_VERSION;
+                // pay attention: sizeof(role_reply) = 12, but the real length of role_reply is 9 bytes.
+                role_reply.header.length = htons(9);
+                role_reply.header.type = POFT_ROLE_REPLY;
+                role_reply.header.xid = pofh->xid;
+                role_reply.role = rr->role;
+                msgbuf_push(fs->outbuf,(char *) &role_reply, 9);
                 break;
             default: 
     //            if(fs->debug)
