@@ -49,7 +49,7 @@ static inline uint64_t ntohll(uint64_t n)
     return htonl(1) == 1 ? n : ((uint64_t) ntohl(n) << 32) | ntohl(n >> 32);
 }
 
-void fakeswitch_init(struct fakeswitch *fs, int dpid, int sock, int bufsize, int debug, int delay, enum test_mode mode, int total_mac_addresses, int learn_dstmac)
+void fakeswitch_init(struct fakeswitch *fs, int dpid, int sock, int bufsize, int debug, int delay, enum test_mode mode, int total_mac_addresses, int learn_dstmac, int max_send_count)
 {
     char buf[BUFLEN];
     struct pof_header pofph;
@@ -61,6 +61,7 @@ void fakeswitch_init(struct fakeswitch *fs, int dpid, int sock, int bufsize, int
     fs->probe_state = 0;
     fs->mode = mode;
     fs->probe_size = make_packet_in(fs->id, 0, 0, buf, BUFLEN, fs->current_mac_address++);
+    fs->max_send_count = max_send_count;
     fs->send_count = 0;
     fs->recv_count = 0;
     fs->switch_status = START;
@@ -504,13 +505,21 @@ static void fakeswitch_handle_write(struct fakeswitch *fs)
     int send_count = 0 ;
     int throughput_buffer = BUFLEN;
     int i;
+    int buffer_capacity;
     if( fs->switch_status == READY_TO_SEND) 
     {
         if ((fs->mode == MODE_LATENCY)  && ( fs->probe_state == 0 ))      
             send_count = 1;                 // just send one packet
-        else if ((fs->mode == MODE_THROUGHPUT) && 
-                (msgbuf_count_buffered(fs->outbuf) < throughput_buffer))  // keep buffer full
-            send_count = (throughput_buffer - msgbuf_count_buffered(fs->outbuf)) / fs->probe_size;
+        else if ((fs->mode == MODE_THROUGHPUT) &&
+                 (msgbuf_count_buffered(fs->outbuf) < throughput_buffer) &&
+                 (fs->max_send_count > fs->send_count))
+        {
+            // keep buffer full
+            buffer_capacity = (throughput_buffer - msgbuf_count_buffered(fs->outbuf)) / fs->probe_size;
+            send_count = fs->max_send_count - fs->send_count;
+            if (buffer_capacity < send_count)
+                send_count = buffer_capacity;
+        }
         for (i = 0; i < send_count; i++)
         {
             // queue up packet
