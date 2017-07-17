@@ -64,6 +64,8 @@ void fakeswitch_init(struct fakeswitch *fs, int dpid, int sock, int bufsize, int
     fs->max_send_count = max_send_count;
     fs->send_count = 0;
     fs->recv_count = 0;
+    fs->totoal_recv_count = 0;
+    fs->total_send_count = 0;
     fs->switch_status = START;
     fs->delay = delay;
     fs->total_mac_addresses = total_mac_addresses;
