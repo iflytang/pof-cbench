@@ -424,6 +424,7 @@ void fakeswitch_handle_read(struct fakeswitch *fs)
                 break;
             case POFT_TABLE_MOD:
                 debug_msg(fs, "Got table_mode message");
+                printf("Got table_mode message\n");
                 break;
             case POFT_FEATURES_REQUEST:
                 // pull msgs out of buffer

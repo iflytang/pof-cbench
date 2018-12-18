@@ -81,10 +81,10 @@
 #define POF_MAX_FIELD_LENGTH_IN_BYTE (16)
 
 /*Define the max number of match field in one flow entry.*/
-#define POF_MAX_MATCH_FIELD_NUM (8)
+#define POF_MAX_MATCH_FIELD_NUM (2)
 
 /*Define the max instruction number of one flow entry.*/
-#define POF_MAX_INSTRUCTION_NUM (6)
+#define POF_MAX_INSTRUCTION_NUM (1)
 
 /*Define the max length of packetin.*/
 #define POF_PACKET_IN_MAX_LENGTH (2048)
@@ -93,7 +93,7 @@
 #define POF_MAX_INSTRUCTION_LENGTH  (8 + POF_MAX_ACTION_NUMBER_PER_INSTRUCTION * (POF_MAX_ACTION_LENGTH + 4))
 
 /*Define the max action number in one instruction.*/
-#define POF_MAX_ACTION_NUMBER_PER_INSTRUCTION (6)
+#define POF_MAX_ACTION_NUMBER_PER_INSTRUCTION (1)
 
 /*Define the max action number in one group.*/
 #define POF_MAX_ACTION_NUMBER_PER_GROUP (4)
