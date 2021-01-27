@@ -285,6 +285,9 @@ int main(int argc, char * argv[])
     int     mode = MODE_LATENCY;
     int     i,j,k;
 
+    FILE *fp = NULL;
+    fp = fopen("result.txt", "a+");
+
     const struct option * long_opts = myargs_to_long(my_options);
     char * short_opts = myargs_to_short(my_options);
     
@@ -488,6 +491,12 @@ int main(int argc, char * argv[])
                 i+1,
                 counted_tests,
                 min, max, avg, std_dev);
+
+        fprintf(fp, "%d\t %d\t %.2lf\t %.2lf\t %.2lf\t %.2lf\t %d\t %d\t %.2lf\t %.2lf\n",
+                i+1, counted_tests,
+                min, max, avg, std_dev,
+                total_recv_count, total_send_cunt,
+                total_response_avg, total_request_avg);
     }
 
     return 0;
